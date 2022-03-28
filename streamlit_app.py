@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import altair as alt
 import statsmodels.api as sm
 
@@ -19,7 +18,8 @@ Developed and maintained by [Mohammad Namakshenas](https://www.linkedin.com/in/m
 )
 
 uploaded_file = st.file_uploader("Upload CSV", type=".csv")
-st.markdown("Other indexes can be found in this link: https://www.cryptodatadownload.com/data/binance/")
+st.markdown("Other indexes can be found in this link: https://www.cryptodatadownload.com/data/binance/. If you "
+            "downloaded data from this link, just remove the first row!")
 use_example_file = st.checkbox(
     "Use example file", False, help="Use in-built example file to demo the app"
 )
@@ -133,4 +133,3 @@ hide_streamlit_style = """
             </style>
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
