@@ -7,8 +7,6 @@ st.set_page_config(
     page_title="time series forecasting", page_icon="📊", initial_sidebar_state="expanded"
 )
 
-
-
 st.write(
     """
 ## 📊 Time Series Forecasting Dashboard
@@ -75,44 +73,45 @@ if uploaded_file:
         ('Autoregressive (AR)', 'Moving Average (MA)', 'Mixed Autoregressive Moving Average (ARMA)',
          'Integration (ARIMA)'))
     if select_method == 'Autoregressive (AR)':
-        ar_val_p = st.number_input('autoregressive component (p)', min_value=0, max_value=5, value=0, step=1)
-        model_fit = sm.tsa.arima.ARIMA(df_filtered_pred['close'], order=(ar_val_p, 0, 0)).fit()
+        val_p = st.number_input('autoregressive component (p)', min_value=0, max_value=5, value=0, step=1)
+        val_q = 0
+        val_d = 0
     elif select_method == 'Moving Average (MA)':
-        ma_val_q = st.number_input('moving component (q)', min_value=0, max_value=5, value=0, step=1)
-        model_fit = sm.tsa.arima.ARIMA(df_filtered_pred['close'], order=(0, 0, ma_val_q)).fit()
+        val_q = st.number_input('moving component (q)', min_value=0, max_value=5, value=0, step=1)
+        val_p = 0
+        val_d = 0
     elif select_method == 'Mixed Autoregressive Moving Average (ARMA)':
         col1, col2 = st.columns(2)
         with col1:
-            ARMA_val_p = st.number_input('autoregressive component (p)', min_value=0, max_value=5, value=0, step=1)
+            val_p = st.number_input('autoregressive component (p)', min_value=0, max_value=5, value=0, step=1)
         with col2:
-            ARMA_val_q = st.number_input('moving component (q)', min_value=0, max_value=5, value=0, step=1)
-        model_fit = sm.tsa.arima.ARIMA(df_filtered_pred['close'], order=(ARMA_val_p, 0, ARMA_val_q)).fit()
+            val_q = st.number_input('moving component (q)', min_value=0, max_value=5, value=0, step=1)
+        val_d = 0
     else:
         col1, col2, col3 = st.columns(3)
         with col1:
-            ARIMA_val_p = st.number_input('autoregressive (p)', min_value=0, max_value=5, value=0, step=1)
+            val_p = st.number_input('autoregressive (p)', min_value=0, max_value=5, value=0, step=1)
         with col2:
-            ARIMA_val_q = st.number_input('moving (q)', min_value=0, max_value=5, value=0, step=1)
+            val_q = st.number_input('moving (q)', min_value=0, max_value=5, value=0, step=1)
         with col3:
-            ARIMA_val_d = st.number_input('difference (d)', min_value=0, max_value=5, value=0, step=1)
-        model_fit = sm.tsa.arima.ARIMA(df_filtered_pred['close'], order=(ARIMA_val_p, ARIMA_val_d, ARIMA_val_q)).fit()
+            val_d = st.number_input('difference (d)', min_value=0, max_value=5, value=0, step=1)
 
     steps_pred = st.number_input('number of steps to forecast?', min_value=0, max_value=30, value=1, step=1)
 
-    pred = model_fit.forecast(steps=steps_pred)
-    dates_pred = pd.date_range(start=slider_date_pred[1], periods=steps_pred, freq='D')
-    chart_data_pred = pd.DataFrame(pred.to_numpy(), columns=['close'])
-    chart_data_pred['date'] = dates_pred
-
-    a = alt.Chart(df_filtered_pred).mark_line(color='blue').encode(
-        x='date', y='close')
-
-    b = alt.Chart(chart_data_pred).mark_line(color='red').encode(
-        x='date', y='close')
-
-    c = alt.layer(a, b)
     button_pred = st.button("Submit")
     if button_pred:
+        model_fit = sm.tsa.arima.ARIMA(df_filtered_pred['close'], order=(val_p, val_d, val_q)).fit()
+        pred = model_fit.forecast(steps=steps_pred)
+        dates_pred = pd.date_range(start=slider_date_pred[1], periods=steps_pred, freq='D')
+        chart_data_pred = pd.DataFrame(pred.to_numpy(), columns=['close'])
+        chart_data_pred['date'] = dates_pred
+
+        a = alt.Chart(df_filtered_pred).mark_line(color='blue').encode(
+            x='date', y='close')
+        b = alt.Chart(chart_data_pred).mark_line(color='red').encode(
+            x='date', y='close')
+        c = alt.layer(a, b)
+
         st.markdown("### Forecasting result")
 
         st.altair_chart(c, use_container_width=True)
